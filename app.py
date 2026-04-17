@@ -14,7 +14,7 @@ DB_DSN      = os.getenv("DB_DSN")
 app = Flask(__name__)
 CORS(app)
 
-# Bloco PL/SQL escrito em arquivo separado para evitar problemas de encoding
+
 PLSQL_CASHBACK = open(
     os.path.join(os.path.dirname(__file__), "cashback.sql"),
     encoding="utf-8"

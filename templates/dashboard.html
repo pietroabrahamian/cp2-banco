@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eco-Awareness 2026 · Cashback Progressivo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #0d1a12;
+    --surface: #111f17;
+    --surface2: #162b1e;
+    --border: rgba(74,200,120,0.15);
+    --border2: rgba(74,200,120,0.28);
+    --green: #4ac878;
+    --green-dim: #2a7a48;
+    --green-glow: rgba(74,200,120,0.08);
+    --amber: #f0c040;
+    --teal: #38d4c0;
+    --red: #e05560;
+    --text: #e8f5ed;
+    --text2: #8db89e;
+    --text3: #4a7060;
+    --mono: 'DM Mono', monospace;
+    --serif: 'DM Serif Display', serif;
+    --sans: 'Outfit', sans-serif;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse 60% 40% at 10% 20%, rgba(74,200,120,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 90% 80%, rgba(56,212,192,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: 64px 1fr;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .topbar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(13,26,18,0.85);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; }
+
+  .logo-mark {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--green), var(--teal));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 600; color: #0d1a12;
+  }
+
+  .logo-text { font-family: var(--serif); font-size: 17px; color: var(--text); }
+  .logo-sub  { font-size: 11px; color: var(--text3); font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .topbar-right { display: flex; align-items: center; gap: 20px; }
+
+  .status-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); font-family: var(--mono); }
+
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  .dot.off { background: var(--text3); animation: none; }
+  .dot.err { background: var(--red); animation: pulse 1s infinite; }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-label {
+    font-size: 10px; font-family: var(--mono); color: var(--text3);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0 20px; margin-bottom: 8px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 20px;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    cursor: pointer; font-size: 13.5px; color: var(--text2);
+    transition: all 0.15s; border-left: 2px solid transparent;
+  }
+
+  .nav-item:hover { background: var(--green-glow); color: var(--text); }
+  .nav-item.active { background: rgba(74,200,120,0.12); color: var(--green); border-left-color: var(--green); font-weight: 500; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--text3); font-family: var(--mono); line-height: 1.6;
+  }
+
+  .main {
+    padding: 28px 32px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+
+  .page-header { display: flex; align-items: flex-end; justify-content: space-between; }
+
+  .page-title { font-family: var(--serif); font-size: 28px; font-weight: 400; color: var(--text); line-height: 1.1; }
+  .page-title span {
+    display: block; font-family: var(--sans); font-size: 13px;
+    font-weight: 300; color: var(--text3); margin-top: 4px; letter-spacing: 0.02em;
+  }
+
+  .btn-exec {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 22px; background: var(--green); color: #0a1a0e;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 600; font-family: var(--sans);
+    cursor: pointer; letter-spacing: 0.02em; transition: all 0.18s;
+  }
+  .btn-exec:hover { background: #5fd98a; transform: translateY(-1px); }
+  .btn-exec:active { transform: translateY(0); }
+  .btn-exec:disabled { background: var(--green-dim); cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    padding: 10px 18px; background: transparent; color: var(--text2);
+    border: 1px solid var(--border2); border-radius: var(--radius-sm);
+    font-size: 12.5px; font-family: var(--sans); cursor: pointer; transition: all 0.15s;
+  }
+  .btn-secondary:hover { background: var(--green-glow); color: var(--text); }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 22px;
+    position: relative; overflow: hidden; transition: border-color 0.2s;
+  }
+  .kpi-card:hover { border-color: var(--border2); }
+  .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .kpi-card.green::after { background: linear-gradient(90deg, var(--green), transparent); }
+  .kpi-card.amber::after { background: linear-gradient(90deg, var(--amber), transparent); }
+  .kpi-card.teal::after  { background: linear-gradient(90deg, var(--teal), transparent); }
+
+  .kpi-label { font-size: 11px; font-family: var(--mono); color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .kpi-value { font-size: 32px; font-weight: 600; color: var(--text); line-height: 1; font-feature-settings: "tnum"; }
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.amber { color: var(--amber); }
+  .kpi-value.teal  { color: var(--teal); }
+  .kpi-sub { font-size: 12px; color: var(--text3); margin-top: 6px; }
+
+  .content-grid { display: grid; grid-template-columns: 1fr 360px; gap: 20px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+  }
+
+  .card-title { font-size: 13px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .card-title-icon { width: 24px; height: 24px; border-radius: 6px; background: var(--green-glow); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .card-body { padding: 20px; }
+
+  .table-wrapper { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  thead th {
+    font-size: 10px; font-family: var(--mono); color: var(--text3);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 10px 14px; text-align: left;
+    border-bottom: 1px solid var(--border); font-weight: 400;
+  }
+
+  tbody tr { border-bottom: 1px solid rgba(74,200,120,0.05); transition: background 0.12s; }
+  tbody tr:hover { background: var(--green-glow); }
+  tbody tr:last-child { border-bottom: none; }
+
+  td { padding: 11px 14px; color: var(--text2); }
+  td.name { color: var(--text); font-weight: 500; }
+
+  .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; font-size: 10px; font-family: var(--mono); font-weight: 500; letter-spacing: 0.06em; }
+  .badge-vip { background: rgba(240,192,64,0.15); color: var(--amber); border: 1px solid rgba(240,192,64,0.2); }
+  .badge-std { background: rgba(74,200,120,0.1); color: var(--green); border: 1px solid rgba(74,200,120,0.15); }
+  .badge-25  { background: rgba(74,200,120,0.15); color: var(--green); }
+  .badge-20  { background: rgba(240,192,64,0.12); color: var(--amber); }
+  .badge-10  { background: rgba(74,107,90,0.2); color: var(--text2); }
+
+  .saldo-val { font-family: var(--mono); color: var(--green); font-weight: 500; }
+  .presencas { font-family: var(--mono); color: var(--teal); }
+
+  .chart-wrapper { position: relative; height: 220px; }
+
+  .log-list { display: flex; flex-direction: column; gap: 1px; }
+
+  .log-item { display: flex; flex-direction: column; gap: 3px; padding: 11px 14px; border-bottom: 1px solid rgba(74,200,120,0.05); }
+  .log-item:last-child { border-bottom: none; }
+  .log-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .log-nome { font-size: 12.5px; font-weight: 500; color: var(--text); }
+  .log-motivo { font-size: 11px; color: var(--text3); font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .log-data { font-size: 10px; color: var(--text3); font-family: var(--mono); flex-shrink: 0; }
+
+  .toast-area { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+
+  .toast {
+    padding: 12px 18px; border-radius: var(--radius-sm); font-size: 13px;
+    border-left: 3px solid; min-width: 280px;
+    animation: slideIn 0.25s ease; display: flex; align-items: center; gap: 10px;
+    backdrop-filter: blur(12px);
+  }
+  .toast.success { background: rgba(74,200,120,0.15); border-color: var(--green); color: var(--green); }
+  .toast.error   { background: rgba(224,85,96,0.15);  border-color: var(--red);   color: var(--red); }
+  .toast.info    { background: rgba(56,212,192,0.12); border-color: var(--teal);  color: var(--teal); }
+
+  @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.2); border-top-color: currentColor; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  .spinner.show { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state { padding: 40px; text-align: center; color: var(--text3); font-size: 13px; }
+
+  @media (max-width: 1100px) { .content-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 700px)  { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main { padding: 16px; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-mark">E</div>
+      <div>
+        <div class="logo-text">Eco-Awareness</div>
+        <div class="logo-sub">Cashback Progressivo · 2026</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="status-badge">
+        <div class="dot off" id="db-dot"></div>
+        <span id="db-status">Conectando...</span>
+      </div>
+      <div class="status-badge" style="font-size:11px; color:var(--text3);" id="last-exec">Nenhuma execução</div>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <div class="sidebar-label">Menu</div>
+    <div class="nav-item active" onclick="showSection('dashboard')">
+      <span style="width:16px;text-align:center;">◈</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showSection('logs')">
+      <span style="width:16px;text-align:center;">≡</span> Log de Auditoria
+    </div>
+    <div class="sidebar-footer">
+      <div style="color:var(--text2); margin-bottom:4px; font-weight:500;">Checkpoint 2</div>
+      PL/SQL + Python<br>Oracle DB · ADS 2025
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section id="section-dashboard">
+
+      <div class="page-header">
+        <h1 class="page-title">
+          Programa de Cashback
+          <span>Distribuição progressiva de estornos aos participantes presentes</span>
+        </h1>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn-secondary" onclick="carregarDados()">↻ Atualizar</button>
+          <button class="btn-exec" id="btn-exec" onclick="executarCashback()">
+            <span class="spinner" id="spinner-exec"></span>
+            ▶ Executar Cashback
+          </button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card green">
+          <div class="kpi-label">Total Cashback</div>
+          <div class="kpi-value green" id="kpi-cashback">—</div>
+          <div class="kpi-sub">Distribuído aos presentes</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">Participantes Presentes</div>
+          <div class="kpi-value amber" id="kpi-presentes">—</div>
+          <div class="kpi-sub">Status = PRESENT</div>
+        </div>
+        <div class="kpi-card teal">
+          <div class="kpi-label">Total Usuários</div>
+          <div class="kpi-value teal" id="kpi-usuarios">—</div>
+          <div class="kpi-sub">Cadastrados no sistema</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Saldo Médio</div>
+          <div class="kpi-value" id="kpi-saldo-medio" style="color:var(--text2)">—</div>
+          <div class="kpi-sub">Por usuário</div>
+        </div>
+      </div>
+
+      <div class="content-grid">
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-title-icon">◈</div>
+              Participantes e Cashback Calculado
+            </div>
+            <div style="font-size:11px; color:var(--text3); font-family:var(--mono);" id="table-count"></div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Tipo</th>
+                  <th>Presenças</th>
+                  <th>% Cashback</th>
+                  <th>Saldo Atual</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-usuarios">
+                <tr><td colspan="5" class="empty-state">Carregando dados do banco...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:16px;">
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <div class="card-title-icon">◉</div>
+                Distribuição por Tier
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart-wrapper">
+                <canvas id="chartTier" role="img" aria-label="Distribuição de cashback por tier">
+                  Distribuição: Ativistas (25%), VIP (20%), Padrão (10%)
+                </canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="flex:1;">
+            <div class="card-header">
+              <div class="card-title">
+                <div class="card-title-icon">≡</div>
+                Atividade Recente
+              </div>
+              <button class="btn-secondary" onclick="showSection('logs')" style="font-size:11px; padding:5px 10px;">Ver todos</button>
+            </div>
+            <div class="log-list" id="log-preview">
+              <div class="empty-state">Nenhum log registrado</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- LOGS -->
+    <section id="section-logs" style="display:none;">
+      <div class="page-header" style="margin-bottom:20px;">
+        <h1 class="page-title">
+          Log de Auditoria
+          <span>Rastreamento de todas as operações de cashback</span>
+        </h1>
+        <button class="btn-secondary" onclick="carregarLogs()">↻ Atualizar</button>
+      </div>
+      <div class="card">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Usuário</th>
+                <th>Inscrição</th>
+                <th>Motivo</th>
+                <th>Data/Hora</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-logs">
+              <tr><td colspan="5" class="empty-state">Carregando logs...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast-area" id="toast-area"></div>
+
+<script>
+const API_BASE = '';
+
+function toast(msg, tipo = 'info') {
+  const area = document.getElementById('toast-area');
+  const el = document.createElement('div');
+  el.className = `toast ${tipo}`;
+  const icon = tipo === 'success' ? '✓' : tipo === 'error' ? '✗' : 'ℹ';
+  el.innerHTML = `<span style="font-weight:600;">${icon}</span> ${msg}`;
+  area.appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
+
+function fmt(val) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+}
+
+function calcCashback(u) {
+  if ((u.qtd_presencas || 0) > 3) return 25;
+  if ((u.tipo || '').toUpperCase() === 'VIP') return 20;
+  return 10;
+}
+
+function getBadgeTier(pct) {
+  if (pct === 25) return '<span class="badge badge-25">25% Ativista</span>';
+  if (pct === 20) return '<span class="badge badge-20">20% VIP</span>';
+  return '<span class="badge badge-10">10% Padrão</span>';
+}
+
+function showSection(id) {
+  ['dashboard', 'logs'].forEach(s => {
+    document.getElementById(`section-${s}`).style.display = s === id ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach((el, i) => {
+    el.classList.toggle('active', ['dashboard', 'logs'][i] === id);
+  });
+  if (id === 'logs') carregarLogs();
+}
+
+let chartInstance = null;
+
+function renderChart(usuarios) {
+  const t25 = usuarios.filter(u => calcCashback(u) === 25).length;
+  const t20 = usuarios.filter(u => calcCashback(u) === 20).length;
+  const t10 = usuarios.filter(u => calcCashback(u) === 10).length;
+
+  if (t25 + t20 + t10 === 0) return;
+
+  const ctx = document.getElementById('chartTier').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Ativista (25%)', 'VIP (20%)', 'Padrão (10%)'],
+      datasets: [{
+        data: [t25, t20, t10],
+        backgroundColor: ['#4ac878', '#f0c040', '#2a5a3a'],
+        borderColor: '#0d1a12',
+        borderWidth: 3,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '68%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} participante(s)` }
+        }
+      }
+    }
+  });
+}
+
+async function carregarDados() {
+  try {
+    const [resResumo, resUsuarios] = await Promise.all([
+      fetch(`${API_BASE}/api/resumo`),
+      fetch(`${API_BASE}/api/usuarios`)
+    ]);
+
+    if (!resResumo.ok || !resUsuarios.ok) throw new Error('Resposta inválida do servidor');
+
+    const resumo   = await resResumo.json();
+    const usuarios = await resUsuarios.json();
+
+    if (resumo.status !== 'success') throw new Error(resumo.message);
+
+    document.getElementById('kpi-cashback').textContent    = fmt(resumo.total_cashback);
+    document.getElementById('kpi-presentes').textContent   = resumo.total_presentes;
+    document.getElementById('kpi-usuarios').textContent    = resumo.total_usuarios;
+    document.getElementById('kpi-saldo-medio').textContent = fmt(resumo.saldo_medio);
+    document.getElementById('table-count').textContent     = `${usuarios.data.length} registros`;
+
+    document.getElementById('tbody-usuarios').innerHTML = usuarios.data.map(u => {
+      const pct = calcCashback(u);
+      return `
+        <tr>
+          <td class="name">${u.nome}</td>
+          <td>${(u.tipo || '').toUpperCase() === 'VIP'
+            ? '<span class="badge badge-vip">VIP</span>'
+            : '<span class="badge badge-std">Padrão</span>'}</td>
+          <td class="presencas">${u.qtd_presencas || 0}</td>
+          <td>${getBadgeTier(pct)}</td>
+          <td class="saldo-val">${fmt(u.saldo || 0)}</td>
+        </tr>`;
+    }).join('');
+
+    renderChart(usuarios.data);
+
+    document.getElementById('db-dot').className = 'dot';
+    document.getElementById('db-status').textContent = 'Oracle conectado';
+
+    // carrega preview do log também
+    const resLogs = await fetch(`${API_BASE}/api/logs`);
+    const logs = await resLogs.json();
+    if (logs.status === 'success' && logs.data.length > 0) {
+      renderLogPreview(logs.data.slice(0, 4));
+    }
+
+  } catch (e) {
+    document.getElementById('db-dot').className = 'dot err';
+    document.getElementById('db-status').textContent = 'Erro de conexão';
+    document.getElementById('tbody-usuarios').innerHTML =
+      `<tr><td colspan="5" class="empty-state" style="color:var(--red);">
+        Erro ao carregar: ${e.message}
+      </td></tr>`;
+    toast(`Erro ao carregar dados: ${e.message}`, 'error');
+  }
+}
+
+async function executarCashback() {
+  const btn = document.getElementById('btn-exec');
+  const spinner = document.getElementById('spinner-exec');
+  btn.disabled = true;
+  spinner.classList.add('show');
+  btn.innerHTML = '<span class="spinner show"></span> Processando...';
+
+  try {
+    const res  = await fetch(`${API_BASE}/api/executar-cashback`, { method: 'POST' });
+    const data = await res.json();
+
+    if (data.status === 'success') {
+      toast(`Cashback executado! ${data.processados_ok} registros processados, ${data.processados_err} erros.`, 'success');
+      document.getElementById('last-exec').textContent =
+        'Última execução: ' + new Date(data.timestamp).toLocaleString('pt-BR');
+      await carregarDados();
+    } else {
+      toast(`Erro Oracle ${data.oracle_code || ''}: ${data.message}`, 'error');
+    }
+  } catch (e) {
+    toast(`Falha na requisição: ${e.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '▶ Executar Cashback';
+    spinner.classList.remove('show');
+  }
+}
+
+async function carregarLogs() {
+  try {
+    const res  = await fetch(`${API_BASE}/api/logs`);
+    const data = await res.json();
+    if (data.status !== 'success') throw new Error(data.message);
+    renderLogsTable(data.data);
+  } catch (e) {
+    toast(`Erro ao carregar logs: ${e.message}`, 'error');
+  }
+}
+
+function renderLogsTable(logs) {
+  if (!logs.length) {
+    document.getElementById('tbody-logs').innerHTML =
+      '<tr><td colspan="5" class="empty-state">Nenhum log encontrado</td></tr>';
+    return;
+  }
+  document.getElementById('tbody-logs').innerHTML = logs.map(l => `
+    <tr>
+      <td style="font-family:var(--mono); color:var(--text3);">#${l.id}</td>
+      <td class="name">${l.usuario_nome}</td>
+      <td style="font-family:var(--mono); color:var(--text3);">${l.inscricao_id}</td>
+      <td style="font-family:var(--mono); font-size:11px; color:var(--text2); max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${l.motivo}">${l.motivo}</td>
+      <td style="font-family:var(--mono); font-size:11px; color:var(--text3); white-space:nowrap;">${l.data_fmt}</td>
+    </tr>`).join('');
+}
+
+function renderLogPreview(logs) {
+  document.getElementById('log-preview').innerHTML = logs.map(l => `
+    <div class="log-item">
+      <div class="log-top">
+        <span class="log-nome">${l.usuario_nome}</span>
+        <span class="log-data">${l.data_fmt}</span>
+      </div>
+      <div class="log-motivo">${l.motivo}</div>
+    </div>`).join('');
+}
+
+document.addEventListener('DOMContentLoaded', carregarDados);
+</script>
+</body>
+</html>
